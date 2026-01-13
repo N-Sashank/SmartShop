@@ -6,15 +6,20 @@ import { prisma } from '../prisma.js';
 
 const router = Router();
 
-// POST /auth/register
+// auth
+
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     if (!name || !email || !password)
       return res.status(400).json({ error: 'Name, email and password required' });
 
-    // Check if user exists
+    
+    const allowedRoles = ['CUSTOMER', 'STORE_OWNER'];
+    const finalRole = allowedRoles.includes(role) ? role : 'CUSTOMER';
+
+    
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing)
       return res.status(409).json({ error: 'Email already in use' });
@@ -26,21 +31,26 @@ router.post('/register', async (req, res) => {
         name,
         email,
         passwordHash,
-        provider: 'LOCAL',        
-        role: 'CUSTOMER'          
+        provider: 'LOCAL',
+        role: finalRole
       }
     });
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
 
-    return res.json({ message: 'Registered successfully', token });
+    return res.json({
+      message: 'Registered successfully',
+      token,
+      role: user.role
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Registration failed' });
   }
 });
 
-// POST /auth/login
+
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -65,7 +75,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /auth/me
+
 router.get('/me', optionalAuth, async (req, res) => {
   if (!req.user) return res.json({ authenticated: false, user: null });
 

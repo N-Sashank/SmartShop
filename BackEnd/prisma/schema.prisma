@@ -66,6 +66,7 @@ model Product {
   id          String    @id @default(cuid())
   name        String
   description String?
+  imageUrl    String?
   price       Float
   stock       Int       @default(0)
   storeId     String
