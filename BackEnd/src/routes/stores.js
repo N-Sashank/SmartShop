@@ -6,14 +6,20 @@ const router = Router();
 
 //Store 
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/create-store', requireAuth, async (req, res) => {
   try {
     const { name, description } = req.body;
 
     if (!name) return res.status(400).json({ error: 'Store name required' });
 
-    if (req.user.role !== 'STORE_OWNER') {
+     const userRole = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {role: true}
+  });
+
+    if (userRole.role !== 'STORE_OWNER') {
       return res.status(403).json({ error: 'Only store owners can create a store' });
+        
     }
 
     const store = await prisma.store.create({
@@ -32,7 +38,7 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 
-router.get('/', async (req, res) => {
+router.get('/get-stores', async (req, res) => {
   try {
     const stores = await prisma.store.findMany({
       select: {

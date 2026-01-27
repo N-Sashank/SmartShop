@@ -6,7 +6,7 @@ const router = Router();
 
 //products 
 
-router.post('/stores/:storeId/products', requireAuth, async (req, res) => {
+router.post('/:storeId/add-product', requireAuth, async (req, res) => {
   try {
     const { storeId } = req.params;
     const { name, description, price, stock, imageUrl } = req.body;
@@ -14,10 +14,15 @@ router.post('/stores/:storeId/products', requireAuth, async (req, res) => {
     if (!name || !price)
       return res.status(400).json({ error: 'Name and price required' });
 
-    if (req.user.role !== 'STORE_OWNER')
-      return res.status(403).json({ error: 'Only store owners can add products' });
+   const userRole = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {role: true}
+  });
 
-
+    if (userRole.role !== 'STORE_OWNER') {
+      return res.status(403).json({ error: 'Only store owners can create a store' });
+        
+    }
     const store = await prisma.store.findUnique({ where: { id: storeId } });
     if (!store)
       return res.status(404).json({ error: 'Store not found' });
@@ -44,7 +49,7 @@ router.post('/stores/:storeId/products', requireAuth, async (req, res) => {
 });
 
 
-router.get('/stores/:storeId/products', async (req, res) => {
+router.get('/:storeId/products', async (req, res) => {
   try {
     const { storeId } = req.params;
 

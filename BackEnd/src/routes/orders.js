@@ -4,7 +4,6 @@ import { prisma } from '../prisma.js';
 
 const router = Router();
 
-// GET /orders  (user's order history)
 router.get('/', requireAuth, async (req, res) => {
   try {
     const orders = await prisma.order.findMany({

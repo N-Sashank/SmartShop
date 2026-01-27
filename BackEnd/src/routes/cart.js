@@ -4,7 +4,6 @@ import { prisma } from '../prisma.js';
 
 const router = Router();
 
-// GET /cart  (user cart)
 router.get('/', requireAuth, async (req, res) => {
   try {
     const cartItems = await prisma.cartItem.findMany({
@@ -31,8 +30,7 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-// POST /cart  (add or update)
-router.post('/', requireAuth, async (req, res) => {
+router.post('/add-item', requireAuth, async (req, res) => {
   try {
     const { productId, quantity } = req.body;
 
@@ -43,12 +41,10 @@ router.post('/', requireAuth, async (req, res) => {
     if (qty < 1)
       return res.status(400).json({ error: 'Quantity must be at least 1' });
 
-    // Check product exists
     const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product)
       return res.status(404).json({ error: 'Product not found' });
 
-    // Check if already in cart
     const existingItem = await prisma.cartItem.findUnique({
       where: {
         userId_productId: { userId: req.user.id, productId }
@@ -57,13 +53,11 @@ router.post('/', requireAuth, async (req, res) => {
 
     let cartItem;
     if (existingItem) {
-      // Update quantity
       cartItem = await prisma.cartItem.update({
         where: { id: existingItem.id },
         data: { quantity: qty }
       });
     } else {
-      // Create new item
       cartItem = await prisma.cartItem.create({
         data: {
           userId: req.user.id,
@@ -80,12 +74,10 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /cart/:id (remove item)
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/delete/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Ensure it belongs to the user
     const item = await prisma.cartItem.findUnique({ where: { id } });
     if (!item)
       return res.status(404).json({ error: 'Cart item not found' });
