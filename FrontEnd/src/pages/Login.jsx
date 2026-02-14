@@ -1,66 +1,84 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { useNavigate } from 'react-router-dom';
 
-export default function Login() {
+function Login() {
   const navigate = useNavigate();
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const submit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      navigate('/stores');
+      const res = await api.post('/auth/login', form);
+      const token = res.data?.token ?? res.data?.accessToken ?? res.data?.access_token;
+      if (token) {
+        localStorage.setItem('token', token);
+        navigate('/stores', { replace: true });
+      } else {
+        setError('Invalid response from server');
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      setError(err.response?.data?.message || 'Login failed');
     } finally {
-      localStorage.setItem('role', res.data.role);//-------------------------------------------------------------------------------to check in /stores whether admin or not
-
       setLoading(false);
     }
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center min-vh-100">
-      <div className="card p-4 shadow-sm" style={{ maxWidth: 400, width: '100%' }}>
-        <h3 className="text-center mb-3">Login</h3>
-
-        {error && <div className="alert alert-danger">{error}</div>}
-
-        <form onSubmit={submit}>
-          <input
-            className="form-control mb-3"
-            placeholder="Email"
-            type="email"
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <input
-            className="form-control mb-3"
-            placeholder="Password"
-            type="password"
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <button
-            className="btn btn-brown w-100"
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-md-5">
+          <div className="card shadow-sm">
+            <div className="card-body p-4">
+              <h5 className="card-title mb-3">Login</h5>
+              {error && <div className="alert alert-danger py-2">{error}</div>}
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label className="form-label">Email</label>
+                  <input
+                    type="email"
+                    autoComplete='off'
+                    name="email"
+                    className="form-control"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    autoComplete='off'
+                    className="form-control"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                  {loading ? 'Logging in...' : 'Login'}
+                </button>
+              </form>
+              <p className="mt-3 mb-0 text-center small">
+                No account? <Link to="/register">Register</Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+export default Login;

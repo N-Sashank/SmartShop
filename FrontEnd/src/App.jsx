@@ -1,51 +1,68 @@
-// import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import './App.css'
-
-// function App() {
-//   const [count, setCount] = useState(0)
-
-//   return (
-//     <>
-//       <div>
-//         <a href="https://vite.dev" target="_blank">
-//           <img src={viteLogo} className="logo" alt="Vite logo" />
-//         </a>
-//         <a href="https://react.dev" target="_blank">
-//           <img src={reactLogo} className="logo react" alt="React logo" />
-//         </a>
-//       </div>
-//       <h1>Vite + React</h1>
-//       <div className="card">
-//         <button onClick={() => setCount((count) => count + 1)}>
-//           count is {count}
-//         </button>
-//         <p>
-//           Edit <code>src/App.jsx</code> and save to test HMR
-//         </p>
-//       </div>
-//       <p className="read-the-docs">
-//         Click on the Vite and React logos to learn more
-//       </p>
-//     </>
-//   )
-// }
-
-// export default App
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
 import Register from './pages/Register';
+import Login from './pages/Login';
 import Stores from './pages/Stores';
+import StoreProducts from './pages/StoreProducts';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
+import Orders from './pages/Orders';
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/stores" element={<Stores />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <Navbar />
+      <main className="container py-4">
+        <Routes>
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/stores"
+            element={
+              <ProtectedRoute>
+                <Stores />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeId"
+            element={
+              <ProtectedRoute>
+                <StoreProducts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/:productId"
+            element={
+              <ProtectedRoute>
+                <ProductDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/stores" replace />} />
+          <Route path="*" element={<Navigate to="/stores" replace />} />
+        </Routes>
+      </main>
+    </>
   );
 }
+
+export default App;

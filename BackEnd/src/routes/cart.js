@@ -44,7 +44,6 @@ router.post('/add-item', requireAuth, async (req, res) => {
     const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product)
       return res.status(404).json({ error: 'Product not found' });
-
     const existingItem = await prisma.cartItem.findUnique({
       where: {
         userId_productId: { userId: req.user.id, productId }
